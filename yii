@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use yii\console\Application;
+
+defined('YII_CONSOLE') or define('YII_CONSOLE', true);
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/protected/config/bootstrap.php';
+require __DIR__ . '/vendor/yiisoft/yii2/Yii.php';
+
+$config = require __DIR__ . '/protected/config/console.php';
+
+$exitCode = (new Application($config))->run();
+exit($exitCode);

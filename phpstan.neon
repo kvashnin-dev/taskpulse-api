@@ -1,0 +1,11 @@
+parameters:
+    level: 6
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php
+    paths:
+        - protected
+        - tests
+    excludePaths:
+        analyse:
+            - protected/runtime
+    tmpDir: protected/runtime/phpstan

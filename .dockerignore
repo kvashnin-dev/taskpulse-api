@@ -1,0 +1,7 @@
+.git
+.idea
+.php-cs-fixer.cache
+.phpunit.cache
+.vscode
+protected/runtime/*
+vendor
