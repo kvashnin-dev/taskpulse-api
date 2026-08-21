@@ -57,11 +57,6 @@ make check              # run every code check
 make logs               # follow container logs
 ```
 
-## Documentation
-
-- [Architecture](documentation/architecture.md)
-- [ADR 0001: Application foundation](documentation/adr/0001-application-foundation.md)
-
 ## API response contract
 
 Successful responses use `data` and `meta` keys. Errors use a stable machine-readable code:
