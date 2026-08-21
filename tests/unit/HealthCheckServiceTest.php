@@ -43,7 +43,7 @@ final class HealthCheckServiceTest extends TestCase
         $db->expects(self::once())
             ->method('createCommand')
             ->with('SELECT 1')
-            ->willThrowException(new RuntimeException('Database is unavailable.'));
+            ->willThrowException(new RuntimeException('База данных недоступна.'));
 
         self::assertSame(
             [

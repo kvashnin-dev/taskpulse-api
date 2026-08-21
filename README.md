@@ -33,14 +33,11 @@ Expected response:
 
 ```json
 {
-  "data": {
-    "status": "ok",
-    "services": {
-      "app": "ok",
-      "postgres": "ok"
-    }
-  },
-  "meta": {}
+  "status": "ok",
+  "services": {
+    "app": "ok",
+    "postgres": "ok"
+  }
 }
 ```
 
@@ -55,22 +52,6 @@ make stan               # run static analysis
 make cs                 # check code style
 make check              # run every code check
 make logs               # follow container logs
-```
-
-## API response contract
-
-Successful responses use `data` and `meta` keys. Errors use a stable machine-readable code:
-
-```json
-{
-  "error": {
-    "code": "validation_error",
-    "message": "Validation failed",
-    "fields": {
-      "title": ["Title cannot be blank."]
-    }
-  }
-}
 ```
 
 ## Iteration workflow

@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-use app\components\ApiErrorHandler;
+use app\services\HealthCheck\HealthCheckService;
+use yii\base\InvalidConfigException;
 use yii\caching\FileCache;
+use yii\db\Connection;
 use yii\log\FileTarget;
 use yii\web\JsonParser;
 use yii\web\Response;
@@ -23,9 +25,14 @@ return [
             'class' => FileCache::class,
         ],
         'db' => $db,
-        'errorHandler' => [
-            'class' => ApiErrorHandler::class,
-        ],
+        'healthCheckService' => static function (): HealthCheckService {
+            $db = Yii::$app->get('db', false);
+            if (!$db instanceof Connection) {
+                throw new InvalidConfigException('Компонент базы данных не настроен.');
+            }
+
+            return new HealthCheckService($db);
+        },
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [

@@ -16,17 +16,22 @@ final readonly class HealthCheckService
      */
     public function check(): array
     {
-        $postgresStatus = $this->checkPostgres() ? 'ok' : 'error';
+        $services = [
+            'app' => 'ok',
+            'postgres' => $this->checkPostgres() ? 'ok' : 'error',
+        ];
 
         return [
-            'status' => $postgresStatus === 'ok' ? 'ok' : 'error',
-            'services' => [
-                'app' => 'ok',
-                'postgres' => $postgresStatus,
-            ],
+            'status' => in_array('error', $services, true) ? 'error' : 'ok',
+            'services' => $services,
         ];
     }
 
+    /**
+     * Проверка PG
+     *
+     * @return bool
+     */
     private function checkPostgres(): bool
     {
         try {

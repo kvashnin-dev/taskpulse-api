@@ -4,48 +4,43 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use app\support\ApiResponse;
-use stdClass;
 use yii\rest\Controller;
 
+/**
+ * Базовый класс для API-контроллеров.
+ */
 abstract class BaseController extends Controller
 {
+    protected const int OK = 200;
+    protected const int CREATED = 201;
+    protected const int NO_CONTENT = 204;
+    protected const int BAD_REQUEST = 400;
+    protected const int UNAUTHORIZED = 401;
+    protected const int FORBIDDEN = 403;
+    protected const int NOT_FOUND = 404;
+    protected const int METHOD_NOT_ALLOWED = 405;
+    protected const int CONFLICT = 409;
+    protected const int UNPROCESSABLE_ENTITY = 422;
+    protected const int TOO_MANY_REQUESTS = 429;
+    protected const int INTERNAL_SERVER_ERROR = 500;
+    protected const int SERVICE_UNAVAILABLE = 503;
+
     /**
-     * Authentication and rate limiting are enabled in their dedicated iterations.
-     *
      * @return array<string, mixed>
      */
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
-        unset($behaviors['authenticator'], $behaviors['rateLimiter']);
+        unset($behaviors['rateLimiter']);
 
         return $behaviors;
     }
 
     /**
-     * @param array<string, mixed> $meta
-     * @return array{data: mixed, meta: array<string, mixed>|stdClass}
+     * @return array<string, list<string>>
      */
-    protected function respond(mixed $data, array $meta = [], int $statusCode = 200): array
+    protected function verbs(): array
     {
-        $this->response->setStatusCode($statusCode);
-
-        return ApiResponse::success($data, $meta);
-    }
-
-    /**
-     * @param array<string, list<string>> $fields
-     * @return array{error: array{code: string, message: string, fields?: array<string, list<string>>}}
-     */
-    protected function respondWithError(
-        string $code,
-        string $message,
-        int $statusCode,
-        array $fields = [],
-    ): array {
-        $this->response->setStatusCode($statusCode);
-
-        return ApiResponse::error($code, $message, $fields);
+        return [];
     }
 }

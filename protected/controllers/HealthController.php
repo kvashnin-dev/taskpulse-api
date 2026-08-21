@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use app\services\HealthCheck\HealthCheckService;
-use LogicException;
-use stdClass;
 use Yii;
-use yii\db\Connection;
+use yii\base\InvalidConfigException;
+use yii\web\ServerErrorHttpException;
 
 final class HealthController extends BaseController
 {
@@ -23,18 +22,21 @@ final class HealthController extends BaseController
     }
 
     /**
-     * @return array{data: mixed, meta: array<string, mixed>|stdClass}
+     * @return array{status: 'ok'|'error', services: array{app: 'ok', postgres: 'ok'|'error'}}
+     * @throws ServerErrorHttpException|InvalidConfigException
      */
     public function actionIndex(): array
     {
-        $db = Yii::$app->get('db');
-        if (!$db instanceof Connection) {
-            throw new LogicException('Database component is not configured.');
+        $healthCheckService = Yii::$app->get('healthCheckService', false);
+        if (!$healthCheckService instanceof HealthCheckService) {
+            throw new ServerErrorHttpException('Сервис проверки состояния не настроен.');
         }
 
-        $health = (new HealthCheckService($db))->check();
-        $statusCode = $health['status'] === 'ok' ? 200 : 503;
+        $health = $healthCheckService->check();
+        $this->response->setStatusCode(
+            $health['status'] === 'ok' ? self::OK : self::SERVICE_UNAVAILABLE,
+        );
 
-        return $this->respond($health, statusCode: $statusCode);
+        return $health;
     }
 }
