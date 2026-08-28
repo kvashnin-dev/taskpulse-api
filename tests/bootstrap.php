@@ -3,3 +3,5 @@
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__) . '/protected/config/bootstrap.php';
+require dirname(__DIR__) . '/vendor/yiisoft/yii2/Yii.php';

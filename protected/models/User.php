@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace app\models;
+
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+use yii\db\Expression;
+
+/**
+ * Пользователь.
+ *
+ * @property int $id
+ * @property string $full_name
+ * @property string|null $phone
+ * @property string $created_at
+ * @property string $updated_at
+ * @property string|null $deleted_at
+ */
+final class User extends ActiveRecord
+{
+    public static function tableName(): string
+    {
+        return '{{%users}}';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function behaviors(): array
+    {
+        return [
+            'timestamp' => [
+                'class' => TimestampBehavior::class,
+                'createdAtAttribute' => 'created_at',
+                'updatedAtAttribute' => 'updated_at',
+                'value' => new Expression('CURRENT_TIMESTAMP'),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function fields(): array
+    {
+        return [
+            'id' => 'id',
+            'full_name' => 'full_name',
+            'phone' => 'phone',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+    }
+}

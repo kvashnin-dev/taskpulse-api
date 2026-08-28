@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use app\services\HealthCheck\HealthCheckService;
+use app\services\UserService;
 use yii\base\InvalidConfigException;
 use yii\caching\FileCache;
 use yii\db\Connection;
@@ -44,6 +45,9 @@ return [
                 ],
             ],
         ],
+        'userService' => [
+            'class' => UserService::class,
+        ],
         'request' => [
             'cookieValidationKey' => $_ENV['APP_COOKIE_VALIDATION_KEY'] ?? '',
             'enableCsrfValidation' => false,
@@ -61,6 +65,11 @@ return [
             'showScriptName' => false,
             'rules' => [
                 'health' => 'health/index',
+                'GET users' => 'user/index',
+                'POST users' => 'user/create',
+                'GET users/<id:\\d+>' => 'user/view',
+                'PATCH users/<id:\\d+>' => 'user/update',
+                'DELETE users/<id:\\d+>' => 'user/delete',
             ],
         ],
     ],
