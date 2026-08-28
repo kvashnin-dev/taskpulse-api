@@ -10,7 +10,7 @@ TaskPulse is a production-style task management and analytics REST API built as 
 - Docker Compose
 - PHPUnit, PHPStan, and PHP CS Fixer
 
-Redis, RabbitMQ, OpenAPI, and CI will be added in later feature iterations.
+Redis, RabbitMQ, and CI will be added in later feature iterations.
 
 ## Local setup
 
@@ -40,6 +40,19 @@ Expected response:
   }
 }
 ```
+
+## Users API
+
+```text
+POST   /users
+GET    /users?page=1&perPage=20
+GET    /users/{id}
+PATCH  /users/{id}
+DELETE /users/{id}
+```
+
+Удаление пользователей выполняется мягко: запись остаётся в базе данных и исключается из API.
+Контракт запросов и ответов описан в [OpenAPI](openapi.yaml).
 
 ## Development commands
 

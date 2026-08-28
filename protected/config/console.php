@@ -6,6 +6,7 @@ use yii\caching\FileCache;
 use yii\log\FileTarget;
 
 $db = require __DIR__ . '/db.php';
+$i18n = require __DIR__ . '/i18n.php';
 $params = require __DIR__ . '/params.php';
 
 return [
@@ -15,11 +16,14 @@ return [
     'runtimePath' => dirname(__DIR__) . '/runtime',
     'controllerNamespace' => 'app\\commands',
     'bootstrap' => ['log'],
+    'language' => 'ru-RU',
+    'sourceLanguage' => 'en-US',
     'components' => [
         'cache' => [
             'class' => FileCache::class,
         ],
         'db' => $db,
+        'i18n' => $i18n,
         'log' => [
             'targets' => [
                 [
