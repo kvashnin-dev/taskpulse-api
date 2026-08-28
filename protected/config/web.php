@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use app\modules\user\Module as UserModule;
 use app\services\HealthCheck\HealthCheckService;
-use app\services\UserService;
 use yii\base\InvalidConfigException;
 use yii\caching\FileCache;
 use yii\db\Connection;
@@ -14,6 +14,7 @@ use yii\web\JsonParser;
 use yii\web\Response;
 
 $db = require __DIR__ . '/db.php';
+$i18n = require __DIR__ . '/i18n.php';
 $params = require __DIR__ . '/params.php';
 
 return [
@@ -23,6 +24,8 @@ return [
     'runtimePath' => dirname(__DIR__) . '/runtime',
     'controllerNamespace' => 'app\\controllers',
     'bootstrap' => ['log'],
+    'language' => 'ru-RU',
+    'sourceLanguage' => 'en-US',
     'container' => [
         'definitions' => [
             Serializer::class => [
@@ -30,8 +33,10 @@ return [
                 'collectionEnvelope' => 'items',
             ],
         ],
-        'singletons' => [
-            UserService::class => UserService::class,
+    ],
+    'modules' => [
+        'user' => [
+            'class' => UserModule::class,
         ],
     ],
     'components' => [
@@ -47,6 +52,7 @@ return [
 
             return new HealthCheckService($db);
         },
+        'i18n' => $i18n,
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
@@ -77,7 +83,9 @@ return [
                 'health' => 'health/index',
                 [
                     'class' => UrlRule::class,
-                    'controller' => 'user',
+                    'controller' => [
+                        'users' => 'user/user',
+                    ],
                 ],
             ],
         ],

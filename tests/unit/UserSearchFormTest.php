@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace tests\unit;
 
-use app\forms\UserSearchForm;
+use app\modules\user\forms\UserSearchForm;
 use PHPUnit\Framework\TestCase;
 
 final class UserSearchFormTest extends TestCase
@@ -15,7 +15,7 @@ final class UserSearchFormTest extends TestCase
 
         self::assertTrue($form->validate());
         self::assertSame(1, $form->page);
-        self::assertSame(20, $form->per_page);
+        self::assertSame(20, $form->perPage);
     }
 
     public function testPaginationValidation(): void
@@ -33,7 +33,7 @@ final class UserSearchFormTest extends TestCase
         );
         self::assertSame(
             'Размер страницы должен быть не больше 100.',
-            $form->getFirstError('per_page'),
+            $form->getFirstError('perPage'),
         );
     }
 }

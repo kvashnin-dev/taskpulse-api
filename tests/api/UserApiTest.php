@@ -114,6 +114,23 @@ final class UserApiTest extends TestCase
     }
 
     /**
+     * @throws JsonException
+     */
+    public function testUpdateRequiresChanges(): void
+    {
+        $created = $this->request('POST', '/users', [
+            'full_name' => 'Иван Петров',
+        ]);
+        self::assertSame(201, $created['status']);
+
+        $response = $this->request('PATCH', '/users/1', []);
+
+        self::assertSame(422, $response['status']);
+        self::assertSame('full_name', $response['body'][0]['field']);
+        self::assertSame('Не переданы данные для обновления.', $response['body'][0]['message']);
+    }
+
+    /**
      * @param array<string, mixed>|null $body
      * @return array{status: int, body: array<int|string, mixed>}
      * @throws JsonException
