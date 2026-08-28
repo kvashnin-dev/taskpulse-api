@@ -28,12 +28,25 @@ paths:
       responses:
         '200':
           description: Список пользователей
+          headers:
+            X-Pagination-Total-Count:
+              schema:
+                type: integer
+            X-Pagination-Page-Count:
+              schema:
+                type: integer
+            X-Pagination-Current-Page:
+              schema:
+                type: integer
+            X-Pagination-Per-Page:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserList'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     post:
       tags: [Users]
       summary: Создать пользователя
@@ -83,8 +96,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
@@ -140,7 +151,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            type: array
+            items:
+              $ref: '#/components/schemas/ValidationError'
   schemas:
     Health:
       type: object
@@ -212,24 +225,40 @@ components:
           pattern: '^\+\d{9,14}$'
     UserList:
       type: object
-      required: [items, pagination]
+      required: [items, _links, _meta]
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/User'
-        pagination:
+        _links:
           type: object
-          required: [page, per_page, total, total_pages]
+          additionalProperties:
+            type: object
+            required: [href]
+            properties:
+              href:
+                type: string
+        _meta:
+          type: object
+          required: [totalCount, pageCount, currentPage, perPage]
           properties:
-            page:
+            totalCount:
               type: integer
-            per_page:
+            pageCount:
               type: integer
-            total:
+            currentPage:
               type: integer
-            total_pages:
+            perPage:
               type: integer
+    ValidationError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
     Error:
       type: object
       required: [name, message, code, status]

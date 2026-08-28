@@ -12,17 +12,6 @@ final class CreateUserDto extends Model
     public mixed $phone = null;
 
     /**
-     * @param array<string, mixed> $data
-     */
-    public static function fromArray(array $data): self
-    {
-        $dto = new self();
-        $dto->setAttributes($data);
-
-        return $dto;
-    }
-
-    /**
      * @return array<int, mixed>
      */
     public function rules(): array

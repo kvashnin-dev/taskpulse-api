@@ -79,8 +79,8 @@ final class UserApiTest extends TestCase
 
         self::assertSame(200, $response['status']);
         self::assertCount(1, $response['body']['items']);
-        self::assertSame(3, $response['body']['pagination']['total']);
-        self::assertSame(2, $response['body']['pagination']['total_pages']);
+        self::assertSame(3, $response['body']['_meta']['totalCount']);
+        self::assertSame(2, $response['body']['_meta']['pageCount']);
     }
 
     /**
@@ -94,13 +94,28 @@ final class UserApiTest extends TestCase
         ]);
 
         self::assertSame(422, $response['status']);
-        self::assertSame('Unprocessable entity', $response['body']['name']);
-        self::assertSame('Имя должно содержать не менее 3 символов.', $response['body']['message']);
+        self::assertSame('full_name', $response['body'][0]['field']);
+        self::assertSame('Имя должно содержать не менее 3 символов.', $response['body'][0]['message']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testPaginationValidationError(): void
+    {
+        $response = $this->request('GET', '/users?page=wrong&per_page=101');
+
+        self::assertSame(422, $response['status']);
+        self::assertSame('page', $response['body'][0]['field']);
+        self::assertSame(
+            'Номер страницы должен быть целым числом.',
+            $response['body'][0]['message'],
+        );
     }
 
     /**
      * @param array<string, mixed>|null $body
-     * @return array{status: int, body: array<string, mixed>}
+     * @return array{status: int, body: array<int|string, mixed>}
      * @throws JsonException
      */
     private function request(string $method, string $path, ?array $body = null): array

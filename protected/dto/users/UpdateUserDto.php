@@ -17,13 +17,13 @@ final class UpdateUserDto extends Model
     /**
      * @param array<string, mixed> $data
      */
-    public static function fromArray(array $data): self
+    public function load($data, $formName = null): bool
     {
-        $dto = new self();
-        $dto->providedFields = array_values(array_intersect(['full_name', 'phone'], array_keys($data)));
-        $dto->setAttributes($data);
+        $this->providedFields = array_values(
+            array_intersect(['full_name', 'phone'], array_keys($data)),
+        );
 
-        return $dto;
+        return parent::load($data, $formName);
     }
 
     /**
@@ -38,6 +38,7 @@ final class UpdateUserDto extends Model
                 'filter' => static fn(mixed $value): mixed => is_string($value) ? trim($value) : $value,
                 'skipOnEmpty' => false,
             ],
+            ['full_name', 'validateChanges', 'skipOnEmpty' => false],
             ['full_name', 'validateFullName', 'skipOnEmpty' => false],
             [
                 'full_name',
@@ -79,6 +80,13 @@ final class UpdateUserDto extends Model
             && ($this->full_name === null || (is_string($this->full_name) && trim($this->full_name) === ''))
         ) {
             $this->addError('full_name', 'Необходимо указать имя.');
+        }
+    }
+
+    public function validateChanges(): void
+    {
+        if (!$this->hasChanges()) {
+            $this->addError('full_name', 'Не переданы данные для обновления.');
         }
     }
 }

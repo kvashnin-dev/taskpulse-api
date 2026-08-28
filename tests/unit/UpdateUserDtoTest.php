@@ -11,7 +11,8 @@ final class UpdateUserDtoTest extends TestCase
 {
     public function testTracksProvidedFields(): void
     {
-        $dto = UpdateUserDto::fromArray(['phone' => null]);
+        $dto = new UpdateUserDto();
+        $dto->load(['phone' => null], '');
 
         self::assertTrue($dto->hasChanges());
         self::assertTrue($dto->hasField('phone'));
@@ -21,14 +22,16 @@ final class UpdateUserDtoTest extends TestCase
 
     public function testEmptyRequestHasNoChanges(): void
     {
-        $dto = UpdateUserDto::fromArray([]);
+        $dto = new UpdateUserDto();
+        $dto->load([], '');
 
         self::assertFalse($dto->hasChanges());
     }
 
     public function testProvidedNameCannotBeEmpty(): void
     {
-        $dto = UpdateUserDto::fromArray(['full_name' => '']);
+        $dto = new UpdateUserDto();
+        $dto->load(['full_name' => ''], '');
 
         self::assertFalse($dto->validate());
         self::assertSame('Необходимо указать имя.', $dto->getFirstError('full_name'));

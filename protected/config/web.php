@@ -8,6 +8,8 @@ use yii\base\InvalidConfigException;
 use yii\caching\FileCache;
 use yii\db\Connection;
 use yii\log\FileTarget;
+use yii\rest\Serializer;
+use yii\rest\UrlRule;
 use yii\web\JsonParser;
 use yii\web\Response;
 
@@ -21,6 +23,17 @@ return [
     'runtimePath' => dirname(__DIR__) . '/runtime',
     'controllerNamespace' => 'app\\controllers',
     'bootstrap' => ['log'],
+    'container' => [
+        'definitions' => [
+            Serializer::class => [
+                'class' => Serializer::class,
+                'collectionEnvelope' => 'items',
+            ],
+        ],
+        'singletons' => [
+            UserService::class => UserService::class,
+        ],
+    ],
     'components' => [
         'cache' => [
             'class' => FileCache::class,
@@ -45,9 +58,6 @@ return [
                 ],
             ],
         ],
-        'userService' => [
-            'class' => UserService::class,
-        ],
         'request' => [
             'cookieValidationKey' => $_ENV['APP_COOKIE_VALIDATION_KEY'] ?? '',
             'enableCsrfValidation' => false,
@@ -65,11 +75,10 @@ return [
             'showScriptName' => false,
             'rules' => [
                 'health' => 'health/index',
-                'GET users' => 'user/index',
-                'POST users' => 'user/create',
-                'GET users/<id:\\d+>' => 'user/view',
-                'PATCH users/<id:\\d+>' => 'user/update',
-                'DELETE users/<id:\\d+>' => 'user/delete',
+                [
+                    'class' => UrlRule::class,
+                    'controller' => 'user',
+                ],
             ],
         ],
     ],

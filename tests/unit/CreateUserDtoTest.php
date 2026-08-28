@@ -11,17 +11,19 @@ final class CreateUserDtoTest extends TestCase
 {
     public function testValidData(): void
     {
-        $dto = CreateUserDto::fromArray([
+        $dto = new CreateUserDto();
+        $dto->load([
             'full_name' => 'Иван Петров',
             'phone' => '+79991234567',
-        ]);
+        ], '');
 
         self::assertTrue($dto->validate());
     }
 
     public function testNameIsRequired(): void
     {
-        $dto = CreateUserDto::fromArray(['phone' => '+79991234567']);
+        $dto = new CreateUserDto();
+        $dto->load(['phone' => '+79991234567'], '');
 
         self::assertFalse($dto->validate());
         self::assertSame('Необходимо указать имя.', $dto->getFirstError('full_name'));
@@ -29,10 +31,11 @@ final class CreateUserDtoTest extends TestCase
 
     public function testPhoneFormat(): void
     {
-        $dto = CreateUserDto::fromArray([
+        $dto = new CreateUserDto();
+        $dto->load([
             'full_name' => 'Иван Петров',
             'phone' => '89991234567',
-        ]);
+        ], '');
 
         self::assertFalse($dto->validate());
         self::assertSame(
@@ -43,7 +46,8 @@ final class CreateUserDtoTest extends TestCase
 
     public function testNameIsTrimmedBeforeValidation(): void
     {
-        $dto = CreateUserDto::fromArray(['full_name' => ' И ']);
+        $dto = new CreateUserDto();
+        $dto->load(['full_name' => ' И '], '');
 
         self::assertFalse($dto->validate());
         self::assertSame('И', $dto->full_name);
@@ -55,10 +59,11 @@ final class CreateUserDtoTest extends TestCase
 
     public function testRejectsNonStringValues(): void
     {
-        $dto = CreateUserDto::fromArray([
+        $dto = new CreateUserDto();
+        $dto->load([
             'full_name' => 123,
             'phone' => 79991234567,
-        ]);
+        ], '');
 
         self::assertFalse($dto->validate());
         self::assertSame('Имя должно быть строкой.', $dto->getFirstError('full_name'));

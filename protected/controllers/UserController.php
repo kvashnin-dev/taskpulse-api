@@ -6,14 +6,26 @@ namespace app\controllers;
 
 use app\dto\users\CreateUserDto;
 use app\dto\users\UpdateUserDto;
+use app\forms\UserSearchForm;
+use app\models\User;
 use app\services\UserService;
-use Yii;
-use yii\base\InvalidConfigException;
-use yii\web\BadRequestHttpException;
-use yii\web\ServerErrorHttpException;
+use yii\base\Module;
+use yii\data\ActiveDataProvider;
 
 final class UserController extends BaseController
 {
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function __construct(
+        string $id,
+        Module $module,
+        private readonly UserService $userService,
+        array $config = [],
+    ) {
+        parent::__construct($id, $module, $config);
+    }
+
     /**
      * @return array<string, list<string>>
      */
@@ -28,107 +40,53 @@ final class UserController extends BaseController
         ];
     }
 
-    /**
-     * @return array{items: list<array<string, mixed>>, pagination: array{page: int, per_page: int, total: int, total_pages: int}}
-     * @throws BadRequestHttpException|InvalidConfigException|ServerErrorHttpException
-     */
-    public function actionIndex(): array
+    public function actionIndex(): ActiveDataProvider|UserSearchForm
     {
-        $page = $this->getPositiveQueryParam('page', 1);
-        $perPage = $this->getPositiveQueryParam('per_page', 20);
-        $userService = $this->getUserService();
+        $form = new UserSearchForm();
+        $form->load($this->request->getQueryParams(), '');
 
-        return $userService->getList($page, $perPage);
+        if (!$form->validate()) {
+            return $form;
+        }
+
+        return $this->userService->getList($form);
     }
 
-    /**
-     * @return array<string, mixed>
-     * @throws InvalidConfigException|ServerErrorHttpException
-     */
-    public function actionView(int $id): array
+    public function actionView(int $id): User
     {
-        $userService = $this->getUserService();
-        $user = $userService->get($id);
-
-        return $user->toArray();
+        return $this->userService->get($id);
     }
 
-    /**
-     * @return array<string, mixed>
-     * @throws InvalidConfigException|ServerErrorHttpException
-     */
-    public function actionCreate(): array
+    public function actionCreate(): User|CreateUserDto
     {
-        $dto = CreateUserDto::fromArray($this->getBodyParams());
-        $userService = $this->getUserService();
-        $user = $userService->create($dto);
+        $dto = new CreateUserDto();
+        $dto->load($this->request->getBodyParams(), '');
+
+        if (!$dto->validate()) {
+            return $dto;
+        }
+
+        $user = $this->userService->create($dto);
         $this->response->setStatusCode(self::CREATED);
 
-        return $user->toArray();
+        return $user;
     }
 
-    /**
-     * @return array<string, mixed>
-     * @throws InvalidConfigException|ServerErrorHttpException
-     */
-    public function actionUpdate(int $id): array
+    public function actionUpdate(int $id): User|UpdateUserDto
     {
-        $dto = UpdateUserDto::fromArray($this->getBodyParams());
-        $userService = $this->getUserService();
-        $user = $userService->update($id, $dto);
+        $dto = new UpdateUserDto();
+        $dto->load($this->request->getBodyParams(), '');
 
-        return $user->toArray();
+        if (!$dto->validate()) {
+            return $dto;
+        }
+
+        return $this->userService->update($id, $dto);
     }
 
-    /**
-     * @throws InvalidConfigException|ServerErrorHttpException
-     */
-    public function actionDelete(int $id): null
+    public function actionDelete(int $id): void
     {
-        $userService = $this->getUserService();
-        $userService->delete($id);
+        $this->userService->delete($id);
         $this->response->setStatusCode(self::NO_CONTENT);
-
-        return null;
-    }
-
-    /**
-     * @return array<string, mixed>
-     * @throws BadRequestHttpException
-     */
-    private function getBodyParams(): array
-    {
-        $bodyParams = $this->request->getBodyParams();
-        if (!is_array($bodyParams)) {
-            throw new BadRequestHttpException('Тело запроса должно быть JSON-объектом.');
-        }
-
-        return $bodyParams;
-    }
-
-    /**
-     * @throws BadRequestHttpException
-     */
-    private function getPositiveQueryParam(string $name, int $default): int
-    {
-        $value = $this->request->getQueryParam($name, $default);
-        if (filter_var($value, FILTER_VALIDATE_INT) === false || (int) $value < 1) {
-            throw new BadRequestHttpException("Параметр {$name} должен быть положительным целым числом.");
-        }
-
-        return (int) $value;
-    }
-
-    /**
-     * @throws InvalidConfigException|ServerErrorHttpException
-     */
-    private function getUserService(): UserService
-    {
-        $userService = Yii::$app->get('userService', false);
-        if (!$userService instanceof UserService) {
-            throw new ServerErrorHttpException('Сервис пользователей не настроен.');
-        }
-
-        return $userService;
     }
 }
