@@ -73,7 +73,7 @@ final class UserService
                 'defaultPageSize' => 20,
                 'pageSizeLimit' => [1, 100],
                 'pageParam' => 'page',
-                'pageSizeParam' => 'per_page',
+                'pageSizeParam' => 'perPage',
             ],
         ]);
     }

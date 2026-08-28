@@ -30,18 +30,11 @@ final class UserForm extends Model
      */
     public function load($data, $formName = null): bool
     {
-        $attributes = [];
+        $this->providedFields = array_values(
+            array_intersect(['fullName', 'phone'], array_keys($data)),
+        );
 
-        if (array_key_exists('full_name', $data)) {
-            $attributes['fullName'] = $data['full_name'];
-            $this->providedFields[] = 'fullName';
-        }
-        if (array_key_exists('phone', $data)) {
-            $attributes['phone'] = $data['phone'];
-            $this->providedFields[] = 'phone';
-        }
-
-        return parent::load($attributes, '');
+        return parent::load($data, $formName);
     }
 
     /**
@@ -122,20 +115,5 @@ final class UserForm extends Model
         if ($this->providedFields === []) {
             $this->addError('fullName', Yii::t('user', 'No data provided for update.'));
         }
-    }
-
-    /**
-     * @inheritDoc
-     * @return array<string, string>
-     */
-    public function getFirstErrors(): array
-    {
-        $errors = [];
-
-        foreach (parent::getFirstErrors() as $attribute => $message) {
-            $errors[$attribute === 'fullName' ? 'full_name' : $attribute] = $message;
-        }
-
-        return $errors;
     }
 }

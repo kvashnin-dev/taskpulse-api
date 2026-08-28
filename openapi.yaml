@@ -126,7 +126,7 @@ components:
         minimum: 1
         default: 1
     PerPage:
-      name: per_page
+      name: perPage
       in: query
       schema:
         type: integer
@@ -174,12 +174,12 @@ components:
               enum: [ok, error]
     User:
       type: object
-      required: [id, full_name, phone, created_at, updated_at]
+      required: [id, fullName, phone, createdAt, updatedAt]
       properties:
         id:
           type: integer
           format: int64
-        full_name:
+        fullName:
           type: string
           minLength: 3
           maxLength: 100
@@ -189,17 +189,17 @@ components:
           minLength: 10
           maxLength: 15
           pattern: '^\+\d{9,14}$'
-        created_at:
+        createdAt:
           type: string
           example: '2026-08-28 12:00:00'
-        updated_at:
+        updatedAt:
           type: string
           example: '2026-08-28 12:00:00'
     CreateUser:
       type: object
-      required: [full_name]
+      required: [fullName]
       properties:
-        full_name:
+        fullName:
           type: string
           minLength: 3
           maxLength: 100
@@ -213,7 +213,7 @@ components:
       type: object
       minProperties: 1
       properties:
-        full_name:
+        fullName:
           type: string
           minLength: 3
           maxLength: 100

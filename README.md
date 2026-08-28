@@ -45,7 +45,7 @@ Expected response:
 
 ```text
 POST   /users
-GET    /users?page=1&per_page=20
+GET    /users?page=1&perPage=20
 GET    /users/{id}
 PATCH  /users/{id}
 DELETE /users/{id}

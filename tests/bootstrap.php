@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/protected/config/bootstrap.php';
 require dirname(__DIR__) . '/vendor/yiisoft/yii2/Yii.php';
 
+$db = require dirname(__DIR__) . '/protected/config/db.php';
 $i18n = require dirname(__DIR__) . '/protected/config/i18n.php';
 
 new yii\console\Application([
@@ -14,6 +15,7 @@ new yii\console\Application([
     'language' => 'ru-RU',
     'sourceLanguage' => 'en-US',
     'components' => [
+        'db' => $db,
         'i18n' => $i18n,
     ],
 ]);

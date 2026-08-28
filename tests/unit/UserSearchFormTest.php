@@ -23,7 +23,7 @@ final class UserSearchFormTest extends TestCase
         $form = new UserSearchForm();
         $form->load([
             'page' => 'wrong',
-            'per_page' => 101,
+            'perPage' => 101,
         ], '');
 
         self::assertFalse($form->validate());

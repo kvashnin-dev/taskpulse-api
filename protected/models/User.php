@@ -47,10 +47,10 @@ final class User extends ActiveRecord
     {
         return [
             'id' => 'id',
-            'full_name' => 'full_name',
+            'fullName' => 'full_name',
             'phone' => 'phone',
-            'created_at' => 'created_at',
-            'updated_at' => 'updated_at',
+            'createdAt' => 'created_at',
+            'updatedAt' => 'updated_at',
         ];
     }
 }

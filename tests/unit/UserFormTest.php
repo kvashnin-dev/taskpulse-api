@@ -13,7 +13,7 @@ final class UserFormTest extends TestCase
     {
         $form = new UserForm(['scenario' => UserForm::SCENARIO_CREATE]);
         $form->load([
-            'full_name' => 'Иван Петров',
+            'fullName' => 'Иван Петров',
             'phone' => '+79991234567',
         ], '');
 
@@ -34,7 +34,7 @@ final class UserFormTest extends TestCase
     {
         $form = new UserForm(['scenario' => UserForm::SCENARIO_CREATE]);
         $form->load([
-            'full_name' => 'Иван Петров',
+            'fullName' => 'Иван Петров',
             'phone' => '89991234567',
         ], '');
 
@@ -48,7 +48,7 @@ final class UserFormTest extends TestCase
     public function testNameIsTrimmedBeforeValidation(): void
     {
         $form = new UserForm(['scenario' => UserForm::SCENARIO_CREATE]);
-        $form->load(['full_name' => ' И '], '');
+        $form->load(['fullName' => ' И '], '');
 
         self::assertFalse($form->validate());
         self::assertSame('И', $form->fullName);
@@ -62,7 +62,7 @@ final class UserFormTest extends TestCase
     {
         $form = new UserForm(['scenario' => UserForm::SCENARIO_CREATE]);
         $form->load([
-            'full_name' => 123,
+            'fullName' => 123,
             'phone' => 79991234567,
         ], '');
 
@@ -84,7 +84,7 @@ final class UserFormTest extends TestCase
     public function testProvidedNameIsRequiredOnUpdate(): void
     {
         $form = new UserForm(['scenario' => UserForm::SCENARIO_UPDATE]);
-        $form->load(['full_name' => ''], '');
+        $form->load(['fullName' => ''], '');
 
         self::assertFalse($form->validate());
         self::assertSame('Необходимо указать имя.', $form->getFirstError('fullName'));

@@ -20,18 +20,6 @@ final class UserSearchForm extends Model
 
     /**
      * @inheritDoc
-     * @param array<string, mixed> $data
-     */
-    public function load($data, $formName = null): bool
-    {
-        return parent::load([
-            'page' => $data['page'] ?? $this->page,
-            'perPage' => $data['per_page'] ?? $this->perPage,
-        ], '');
-    }
-
-    /**
-     * @inheritDoc
      * @return array<int, mixed>
      */
     public function rules(): array
@@ -56,20 +44,5 @@ final class UserSearchForm extends Model
                 'tooBig' => Yii::t('user', 'Page size must be no greater than 100.'),
             ],
         ];
-    }
-
-    /**
-     * @inheritDoc
-     * @return array<string, string>
-     */
-    public function getFirstErrors(): array
-    {
-        $errors = [];
-
-        foreach (parent::getFirstErrors() as $attribute => $message) {
-            $errors[$attribute === 'perPage' ? 'per_page' : $attribute] = $message;
-        }
-
-        return $errors;
     }
 }
