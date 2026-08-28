@@ -28,7 +28,7 @@ final class UserService
     {
         $user = new User();
         $user->setAttribute('full_name', $form->fullName);
-        $user->setAttribute('phone', $form->phone);
+        $user->phone = $form->phone === null ? null : (string) $form->phone;
 
         if (!$user->save(false)) {
             throw new ServerErrorHttpException(Yii::t('user', 'Failed to create user.'));
@@ -95,7 +95,7 @@ final class UserService
             $user->setAttribute('full_name', $form->fullName);
         }
         if ($form->hasField('phone')) {
-            $user->setAttribute('phone', $form->phone);
+            $user->phone = $form->phone === null ? null : (string) $form->phone;
         }
 
         if (!$user->save(false)) {
