@@ -4,50 +4,48 @@ declare(strict_types=1);
 
 namespace app\modules\task\services;
 
+use app\extensions\DbConnectTrait;
 use app\models\Task;
 use app\models\User;
+use app\modules\task\exceptions\TaskNotFoundException;
+use app\modules\task\exceptions\TaskSaveException;
 use app\modules\task\forms\TaskForm;
 use app\modules\task\forms\TaskSearchForm;
-use app\modules\task\repositories\TaskRepositoryInterface;
+use app\modules\task\repositories\TaskRepository;
+use app\modules\user\exceptions\UserNotFoundException;
 use Throwable;
-use Yii;
-use yii\data\ActiveDataProvider;
-use yii\db\Connection;
+use yii\data\SqlDataProvider;
 use yii\db\Expression;
-use yii\web\NotFoundHttpException;
-use yii\web\ServerErrorHttpException;
 
 /**
  * Сервис управления задачами.
  */
 final class TaskService
 {
+    use DbConnectTrait;
+
     /**
-     * @param TaskRepositoryInterface $repository
-     * @param Connection $db
+     * @param TaskRepository $repository
      */
-    public function __construct(
-        private readonly TaskRepositoryInterface $repository,
-        private readonly Connection $db,
-    ) {}
+    public function __construct(private readonly TaskRepository $repository) {}
 
     /**
      * Создать задачу.
      *
      * @param TaskForm $form
      * @return Task
-     * @throws ServerErrorHttpException
+     * @throws TaskSaveException
      */
     public function create(TaskForm $form): Task
     {
         $task = new Task();
-        $task->setAttribute('author_id', (int) $form->authorId);
-        $task->title = (string) $form->title;
-        $task->description = $form->description === null ? null : (string) $form->description;
-        $task->completed = (bool) $form->completed;
-        $task->setAttribute('completed_at', $task->completed ? new Expression('CURRENT_TIMESTAMP') : null);
+        $task->setAttributes($form->getTaskAttributes(), false);
+        $task->setAttribute(
+            'completed_at',
+            $task->completed ? new Expression('CURRENT_TIMESTAMP') : null,
+        );
 
-        $this->save($task, Yii::t('task', 'Failed to create task.'));
+        $this->save($task);
         $task->refresh();
 
         return $task;
@@ -58,20 +56,20 @@ final class TaskService
      *
      * @param int $id
      * @return Task
-     * @throws NotFoundHttpException
+     * @throws TaskNotFoundException
      */
-    public function get(int $id): Task
+    public function getById(int $id): Task
     {
-        return $this->getTask($id);
+        return $this->getExistingTask($id);
     }
 
     /**
      * Получить список задач.
      *
      * @param TaskSearchForm $form
-     * @return ActiveDataProvider
+     * @return SqlDataProvider
      */
-    public function getList(TaskSearchForm $form): ActiveDataProvider
+    public function getList(TaskSearchForm $form): SqlDataProvider
     {
         return $this->repository->getList($form);
     }
@@ -81,13 +79,13 @@ final class TaskService
      *
      * @param int $userId
      * @param TaskSearchForm $form
-     * @return ActiveDataProvider
-     * @throws NotFoundHttpException
+     * @return SqlDataProvider
+     * @throws UserNotFoundException
      */
-    public function getUserTasks(int $userId, TaskSearchForm $form): ActiveDataProvider
+    public function getUserTasks(int $userId, TaskSearchForm $form): SqlDataProvider
     {
         if (!User::find()->where(['id' => $userId, 'deleted_at' => null])->exists()) {
-            throw new NotFoundHttpException(Yii::t('user', 'User not found.'));
+            throw new UserNotFoundException("Пользователь {$userId} не найден.");
         }
 
         return $this->repository->getList($form, $userId);
@@ -99,22 +97,23 @@ final class TaskService
      * @param int $id
      * @param TaskForm $form
      * @return Task
-     * @throws NotFoundHttpException
-     * @throws ServerErrorHttpException
+     * @throws TaskNotFoundException
+     * @throws TaskSaveException
      * @throws Throwable
      */
     public function update(int $id, TaskForm $form): Task
     {
-        if (!$form->hasField('completed')) {
-            $task = $this->getTask($id);
-            $this->fill($task, $form);
-            $this->save($task, Yii::t('task', 'Failed to update task.'));
-            $task->refresh();
-
-            return $task;
+        if ($form->hasField('completed')) {
+            return $this->updateState($id, $form);
         }
 
-        return $this->updateState($id, $form);
+        $task = $this->getExistingTask($id);
+        $task->setAttributes($form->getTaskAttributes(), false);
+
+        $this->save($task);
+        $task->refresh();
+
+        return $task;
     }
 
     /**
@@ -122,15 +121,15 @@ final class TaskService
      *
      * @param int $id
      * @return void
-     * @throws NotFoundHttpException
-     * @throws ServerErrorHttpException
+     * @throws TaskNotFoundException
+     * @throws TaskSaveException
      */
     public function delete(int $id): void
     {
-        $task = $this->getTask($id);
+        $task = $this->getExistingTask($id);
         $task->setAttribute('deleted_at', new Expression('CURRENT_TIMESTAMP'));
 
-        $this->save($task, Yii::t('task', 'Failed to delete task.'));
+        $this->save($task);
     }
 
     /**
@@ -143,18 +142,18 @@ final class TaskService
      */
     private function updateState(int $id, TaskForm $form): Task
     {
-        $transaction = $this->db->beginTransaction();
+        $transaction = $this->getDbConnection()->beginTransaction();
 
         try {
-            $task = $this->repository->findForUpdate($id);
+            $task = $this->repository->getByIdForUpdate($id);
             if (!$task instanceof Task) {
-                throw new NotFoundHttpException(Yii::t('task', 'Task not found.'));
+                throw new TaskNotFoundException("Задача {$id} не найдена.");
             }
 
             $completed = (bool) $form->completed;
             $stateChanged = $task->completed !== $completed;
 
-            $this->fill($task, $form);
+            $task->setAttributes($form->getTaskAttributes(), false);
             if ($stateChanged) {
                 $task->setAttribute(
                     'completed_at',
@@ -162,7 +161,7 @@ final class TaskService
                 );
             }
 
-            $this->save($task, Yii::t('task', 'Failed to update task.'));
+            $this->save($task);
             $transaction->commit();
             $task->refresh();
 
@@ -177,40 +176,17 @@ final class TaskService
     }
 
     /**
-     * Заполнить изменённые поля задачи.
-     *
-     * @param Task $task
-     * @param TaskForm $form
-     * @return void
-     */
-    private function fill(Task $task, TaskForm $form): void
-    {
-        if ($form->hasField('authorId')) {
-            $task->setAttribute('author_id', (int) $form->authorId);
-        }
-        if ($form->hasField('title')) {
-            $task->title = (string) $form->title;
-        }
-        if ($form->hasField('description')) {
-            $task->description = $form->description === null ? null : (string) $form->description;
-        }
-        if ($form->hasField('completed')) {
-            $task->completed = (bool) $form->completed;
-        }
-    }
-
-    /**
-     * Получить задачу или выбросить исключение.
+     * Получить существующую задачу.
      *
      * @param int $id
      * @return Task
-     * @throws NotFoundHttpException
+     * @throws TaskNotFoundException
      */
-    private function getTask(int $id): Task
+    private function getExistingTask(int $id): Task
     {
-        $task = $this->repository->find($id);
+        $task = $this->repository->getById($id);
         if (!$task instanceof Task) {
-            throw new NotFoundHttpException(Yii::t('task', 'Task not found.'));
+            throw new TaskNotFoundException("Задача {$id} не найдена.");
         }
 
         return $task;
@@ -220,14 +196,13 @@ final class TaskService
      * Сохранить задачу.
      *
      * @param Task $task
-     * @param string $message
      * @return void
-     * @throws ServerErrorHttpException
+     * @throws TaskSaveException
      */
-    private function save(Task $task, string $message): void
+    private function save(Task $task): void
     {
         if (!$task->save(false)) {
-            throw new ServerErrorHttpException($message);
+            throw new TaskSaveException('Не удалось сохранить задачу.');
         }
     }
 }

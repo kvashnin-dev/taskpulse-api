@@ -35,7 +35,12 @@ final readonly class HealthCheckService
     private function checkPostgres(): bool
     {
         try {
-            return (int) $this->db->createCommand('SELECT 1')->queryScalar() === 1;
+            $sql = file_get_contents(__DIR__ . '/sqls/check_postgres.sql');
+            if ($sql === false) {
+                return false;
+            }
+
+            return (int) $this->db->createCommand(trim($sql))->queryScalar() === 1;
         } catch (Throwable) {
             return false;
         }

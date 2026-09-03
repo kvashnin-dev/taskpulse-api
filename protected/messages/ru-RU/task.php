@@ -17,6 +17,8 @@ return [
     'Date must be in ISO 8601 format.' => 'Дата должна быть указана в формате ISO 8601.',
     'Sort value is invalid.' => 'Недопустимое значение сортировки.',
     'Task not found.' => 'Задача не найдена.',
+    'Failed to get task.' => 'Не удалось получить задачу.',
+    'Failed to get tasks.' => 'Не удалось получить задачи.',
     'Failed to create task.' => 'Не удалось создать задачу.',
     'Failed to update task.' => 'Не удалось обновить задачу.',
     'Failed to delete task.' => 'Не удалось удалить задачу.',

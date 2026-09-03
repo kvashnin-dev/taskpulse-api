@@ -4,46 +4,67 @@ declare(strict_types=1);
 
 namespace app\modules\task\repositories;
 
+use app\extensions\DbConnectTrait;
 use app\models\Task;
 use app\modules\task\forms\TaskSearchForm;
-use yii\data\ActiveDataProvider;
+use RuntimeException;
+use yii\data\SqlDataProvider;
 
 /**
  * Репозиторий задач.
  */
-final class TaskRepository implements TaskRepositoryInterface
+final class TaskRepository
 {
-    /** @inheritDoc */
-    public function find(int $id): ?Task
+    use DbConnectTrait;
+
+    /**
+     * Получить задачу.
+     *
+     * @param int $id
+     * @return Task|null
+     */
+    public function getById(int $id): ?Task
     {
         return Task::find()
             ->where(['id' => $id, 'deleted_at' => null])
             ->one();
     }
 
-    /** @inheritDoc */
-    public function findForUpdate(int $id): ?Task
+    /**
+     * Получить и заблокировать задачу до завершения транзакции.
+     *
+     * @param int $id
+     * @return Task|null
+     */
+    public function getByIdForUpdate(int $id): ?Task
     {
         return Task::findBySql(
-            'SELECT * FROM {{%tasks}} WHERE id = :id AND deleted_at IS NULL FOR UPDATE',
+            $this->getSql('get_task_for_update'),
             [':id' => $id],
         )->one();
     }
 
-    /** @inheritDoc */
-    public function getList(TaskSearchForm $form, ?int $authorId = null): ActiveDataProvider
+    /**
+     * Получить список задач.
+     *
+     * @param TaskSearchForm $form
+     * @param int|null $authorId
+     * @return SqlDataProvider
+     */
+    public function getList(TaskSearchForm $form, ?int $authorId = null): SqlDataProvider
     {
-        $query = Task::find()
-            ->where(['deleted_at' => null])
-            ->andFilterWhere(['author_id' => $authorId ?? $form->authorId])
-            ->andFilterWhere(['completed' => $form->completed])
-            ->andFilterWhere(['>=', 'created_at', $form->createdFrom])
-            ->andFilterWhere(['<=', 'created_at', $form->createdTo])
-            ->andFilterWhere(['>=', 'completed_at', $form->completedFrom])
-            ->andFilterWhere(['<=', 'completed_at', $form->completedTo]);
-
-        return new ActiveDataProvider([
-            'query' => $query,
+        return new SqlDataProvider([
+            'db' => $this->getDbConnection(),
+            'sql' => $this->getSql('get_tasks'),
+            'params' => [
+                ':authorId' => $authorId ?? $form->authorId,
+                ':completed' => $form->completed,
+                ':createdFrom' => $form->createdFrom,
+                ':createdTo' => $form->createdTo,
+                ':completedFrom' => $form->completedFrom,
+                ':completedTo' => $form->completedTo,
+            ],
+            'key' => 'id',
             'pagination' => [
                 'defaultPageSize' => 20,
                 'pageSizeLimit' => [1, 100],
@@ -71,5 +92,21 @@ final class TaskRepository implements TaskRepositoryInterface
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Получить SQL-запрос из файла.
+     *
+     * @param string $name
+     * @return string
+     */
+    private function getSql(string $name): string
+    {
+        $sql = file_get_contents(__DIR__ . "/sqls/{$name}.sql");
+        if ($sql === false) {
+            throw new RuntimeException("Не удалось прочитать SQL-запрос {$name}.");
+        }
+
+        return $sql;
     }
 }

@@ -12,6 +12,7 @@ return [
     'Phone should contain at most 15 characters.' => 'Телефон должен содержать не более 15 символов.',
     'Phone must start with + and contain digits only.' => 'Телефон должен начинаться с + и содержать только цифры.',
     'User not found.' => 'Пользователь не найден.',
+    'Failed to get user.' => 'Не удалось получить пользователя.',
     'Failed to create user.' => 'Не удалось создать пользователя.',
     'Failed to update user.' => 'Не удалось обновить пользователя.',
     'Failed to delete user.' => 'Не удалось удалить пользователя.',

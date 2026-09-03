@@ -143,6 +143,26 @@ final class TaskForm extends Model
     }
 
     /**
+     * Получить атрибуты задачи.
+     *
+     * @return array<string, mixed>
+     */
+    public function getTaskAttributes(): array
+    {
+        $fields = $this->scenario === self::SCENARIO_UPDATE
+            ? $this->providedFields
+            : ['authorId', 'title', 'description', 'completed'];
+        $attributes = $this->getAttributes($fields);
+
+        if (array_key_exists('authorId', $attributes)) {
+            $attributes['author_id'] = $attributes['authorId'];
+            unset($attributes['authorId']);
+        }
+
+        return $attributes;
+    }
+
+    /**
      * Проверить наличие данных для обновления.
      */
     public function validateChanges(): void

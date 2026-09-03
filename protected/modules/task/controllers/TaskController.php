@@ -6,13 +6,16 @@ namespace app\modules\task\controllers;
 
 use app\controllers\BaseController;
 use app\models\Task;
+use app\modules\task\exceptions\TaskNotFoundException;
 use app\modules\task\forms\TaskForm;
 use app\modules\task\forms\TaskSearchForm;
 use app\modules\task\Module;
 use app\modules\task\services\TaskService;
+use app\modules\user\exceptions\UserNotFoundException;
 use Throwable;
+use Yii;
 use yii\base\InvalidConfigException;
-use yii\data\ActiveDataProvider;
+use yii\data\SqlDataProvider;
 use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
 
@@ -57,9 +60,9 @@ final class TaskController extends BaseController
     /**
      * Получить список задач.
      *
-     * @return ActiveDataProvider|TaskSearchForm
+     * @return SqlDataProvider|TaskSearchForm
      */
-    public function actionIndex(): ActiveDataProvider|TaskSearchForm
+    public function actionIndex(): SqlDataProvider|TaskSearchForm
     {
         $form = $this->getSearchForm();
         if (!$form->validate()) {
@@ -73,17 +76,34 @@ final class TaskController extends BaseController
      * Получить задачи пользователя.
      *
      * @param int $id
-     * @return ActiveDataProvider|TaskSearchForm
+     * @return SqlDataProvider|TaskSearchForm
      * @throws NotFoundHttpException
+     * @throws ServerErrorHttpException
      */
-    public function actionUser(int $id): ActiveDataProvider|TaskSearchForm
+    public function actionUser(int $id): SqlDataProvider|TaskSearchForm
     {
         $form = $this->getSearchForm();
         if (!$form->validate()) {
             return $form;
         }
 
-        return $this->taskService->getUserTasks($id, $form);
+        try {
+            return $this->taskService->getUserTasks($id, $form);
+        } catch (UserNotFoundException $exception) {
+            throw new NotFoundHttpException(
+                Yii::t('user', 'User not found.'),
+                0,
+                $exception,
+            );
+        } catch (Throwable $exception) {
+            Yii::error($exception, __METHOD__);
+
+            throw new ServerErrorHttpException(
+                Yii::t('task', 'Failed to get tasks.'),
+                0,
+                $exception,
+            );
+        }
     }
 
     /**
@@ -92,10 +112,27 @@ final class TaskController extends BaseController
      * @param int $id
      * @return Task
      * @throws NotFoundHttpException
+     * @throws ServerErrorHttpException
      */
     public function actionView(int $id): Task
     {
-        return $this->taskService->get($id);
+        try {
+            return $this->taskService->getById($id);
+        } catch (TaskNotFoundException $exception) {
+            throw new NotFoundHttpException(
+                Yii::t('task', 'Task not found.'),
+                0,
+                $exception,
+            );
+        } catch (Throwable $exception) {
+            Yii::error($exception, __METHOD__);
+
+            throw new ServerErrorHttpException(
+                Yii::t('task', 'Failed to get task.'),
+                0,
+                $exception,
+            );
+        }
     }
 
     /**
@@ -113,10 +150,20 @@ final class TaskController extends BaseController
             return $form;
         }
 
-        $task = $this->taskService->create($form);
-        $this->response->setStatusCode(self::CREATED);
+        try {
+            $task = $this->taskService->create($form);
+            $this->response->setStatusCode(self::CREATED);
 
-        return $task;
+            return $task;
+        } catch (Throwable $exception) {
+            Yii::error($exception, __METHOD__);
+
+            throw new ServerErrorHttpException(
+                Yii::t('task', 'Failed to create task.'),
+                0,
+                $exception,
+            );
+        }
     }
 
     /**
@@ -137,7 +184,23 @@ final class TaskController extends BaseController
             return $form;
         }
 
-        return $this->taskService->update($id, $form);
+        try {
+            return $this->taskService->update($id, $form);
+        } catch (TaskNotFoundException $exception) {
+            throw new NotFoundHttpException(
+                Yii::t('task', 'Task not found.'),
+                0,
+                $exception,
+            );
+        } catch (Throwable $exception) {
+            Yii::error($exception, __METHOD__);
+
+            throw new ServerErrorHttpException(
+                Yii::t('task', 'Failed to update task.'),
+                0,
+                $exception,
+            );
+        }
     }
 
     /**
@@ -150,8 +213,24 @@ final class TaskController extends BaseController
      */
     public function actionDelete(int $id): void
     {
-        $this->taskService->delete($id);
-        $this->response->setStatusCode(self::NO_CONTENT);
+        try {
+            $this->taskService->delete($id);
+            $this->response->setStatusCode(self::NO_CONTENT);
+        } catch (TaskNotFoundException $exception) {
+            throw new NotFoundHttpException(
+                Yii::t('task', 'Task not found.'),
+                0,
+                $exception,
+            );
+        } catch (Throwable $exception) {
+            Yii::error($exception, __METHOD__);
+
+            throw new ServerErrorHttpException(
+                Yii::t('task', 'Failed to delete task.'),
+                0,
+                $exception,
+            );
+        }
     }
 
     /**

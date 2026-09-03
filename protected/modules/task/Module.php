@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace app\modules\task;
 
 use app\modules\task\repositories\TaskRepository;
-use app\modules\task\repositories\TaskRepositoryInterface;
 use app\modules\task\services\TaskService;
-use Yii;
-use yii\db\Connection;
 
 /**
  * Модуль задач.
@@ -23,16 +20,14 @@ final class Module extends \yii\base\Module
     {
         parent::init();
 
-        $this->set(TaskRepositoryInterface::class, [
+        $this->set(TaskRepository::class, [
             'class' => TaskRepository::class,
         ]);
         $this->set(TaskService::class, function (): TaskService {
-            /** @var TaskRepositoryInterface $repository */
-            $repository = $this->get(TaskRepositoryInterface::class);
-            /** @var Connection $db */
-            $db = Yii::$app->get('db');
+            /** @var TaskRepository $repository */
+            $repository = $this->get(TaskRepository::class);
 
-            return new TaskService($repository, $db);
+            return new TaskService($repository);
         });
     }
 }
