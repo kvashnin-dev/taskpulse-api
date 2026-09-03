@@ -113,7 +113,7 @@ final class UserForm extends Model
     public function validateChanges(): void
     {
         if ($this->providedFields === []) {
-            $this->addError('fullName', Yii::t('user', 'No data provided for update.'));
+            $this->addError('fullName', Yii::t('app', 'No data provided for update.'));
         }
     }
 }
