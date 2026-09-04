@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\modules\task\Module as TaskModule;
 use app\modules\user\Module as UserModule;
 use app\services\HealthCheck\HealthCheckService;
 use yii\base\InvalidConfigException;
@@ -35,6 +36,9 @@ return [
         ],
     ],
     'modules' => [
+        'task' => [
+            'class' => TaskModule::class,
+        ],
         'user' => [
             'class' => UserModule::class,
         ],
@@ -81,6 +85,13 @@ return [
             'showScriptName' => false,
             'rules' => [
                 'health' => 'health/index',
+                'GET users/<id:\d+>/tasks' => 'task/task/user',
+                [
+                    'class' => UrlRule::class,
+                    'controller' => [
+                        'tasks' => 'task/task',
+                    ],
+                ],
                 [
                     'class' => UrlRule::class,
                     'controller' => [
